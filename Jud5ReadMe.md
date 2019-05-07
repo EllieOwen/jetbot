@@ -11,5 +11,3 @@ Appearance Modeling is a set of universal shapes. The one I use the most, I call
 
 The GUI works just way I like it (so I assume you'll all want to make you own). It needs a lot more standard pieces and one final pass on graphs.
 
-
-

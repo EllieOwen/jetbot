@@ -29,6 +29,22 @@ Need to buy:
 1 teensy 3.5 $25
 10 SOIC to thru-hole adaptors $10
 
+Some changes:
+Leon wants to make another "bottom end" from old drill motors and I'm thinking, a more unversal setup to minimize effort across a line of various two wheeled vehicles is the way to go. Also, we'll eventually want to add active suspension with linear motors, brushless motors (for the wheels) and various payloads with various electrical demands. For all motors (muscles), we need to measure the intregral of the current and voltage not just descrete samples and we'll want to use current sensing transformers and hall effect sensors. In any case we need integrators or delta sigma convertors. I want to standardize the processor and analog sensing for all our projects. The Teensy 3.2 thru 3.6 is the best choice for the MCU so we just need to design a standard analog board.
+
+I've been working on a combination analog to digital converter that has a delta sigma front end that feeds the Successive Approximation A/Ds on the MCU (Teensy). I guess you could call it Analog Decimation but I'm not the guy you want to name things (I can't remember or spell proper nouns) The design is pretty complicated and requires a lot of parts so I'm still looking for a chip that will do the job. In the meantime the analog board design (below) at least illustrates the requirements of a brain style control hardware. Brain Style means it drives the motors like a brain would if measured at the motor. The Teensy has enough power to be the immediate brain piece we don't need a full blown neural network. We can hardcode a lot of it since we know the set of parameters that needs to be learned. 
+
+The brain piece is a machine learned model simulation of the Jeg. The model is the physics data: dimensions, masses, centers of mass, moments, torques and forces such that if you know all the torques and forces you can figure out what the accelerations and their double intergrals are going to be. You know the torques and forces from the currents and voltages. You know those from preplaned maneuvers based on machine learned elemential maneuvers and high resolution measurements. The simulation is kept in sync with reality from current, voltage, IMU, and camera feedback. But you want to be able to go quite a while with just current and voltage and a really long time with IMU. Each motor and sensor has its own simulation nested one layer deep in the simulation of the whole Jeg.
+
+To be high performance, we need a high fidelity model of the motor which includes the inductance as a function of position and current, position as a function of the integral of the back emf, torque as a function of current and position, etc. Anyway, conventional, descret, sampling (successive approximation) does cut it (no matter how fast or deep), You need an analog integral of the motor current and voltage. That's six integrals for a brusless motor or a 3 phase linear motor.
+
+A delta sigmal converter would work but not exactly the way I'd like it to:
+An integrator is made from a capacitor and an opamp. You need to use the right kind of capacitor that is stable and constant over temperature etc and a modern cmos, low offset, opamp. You connect the capacitor between the minus input and the output and bias the plus input to your reference (your reference is the voltage the reads half scale on your A/D). Now its itegrating the current going into the minus input. If you hook one end of a resistor to the minus input, it integrates the voltage (minus your reference voltage) on the other end of the resistor. 
+
+To measure the voltage accross a motor (or leg if, brushless), you need to make a differential measurement so, you need to put an instrumentation amp or an opamp configured to be an instrumentation amp in front of your integrator. Currents are measured in three ways: a current sense transformer, shunt and AD8418, or hall effect current sensor. Current sense transformers connect between the buffered reference and the integrator through a resistor so you're measuring the voltage across the transformer which is proportional to the change in (derivative of) the current. The integral you get is the current and not the integral of the current which is cool but only works for AC currents. The AD8418 is basically an intrumentation amp and Hall effect sensors are usually instrumented so, they also connect through, just, a resistor and you get the integral of the current  at the output of the integrator, (input to the Teensy A/D) like you'd expect.
+
+
+
 
 
 
